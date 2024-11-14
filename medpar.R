@@ -10,13 +10,12 @@
 #  Diagnóstico do ajuste (análise de resíduos, observações atípicas, multicolinearidade e teste da 
 # qualidade do ajuste);
 #  Interpretação/discussão dos efeitos das preditores na resposta;
-#  Análise da capacidade preditiva do modelo, se o objetivo for preditivo);
+#  Análise da capacidade preditiva do modelo, se o objetivo for preditivo;
 #  Conclusão do trabalho, apresentando o fechamento da análise, as limitações encontradas e possíveis
 # investigações futuras.
 
 require(tidyverse)
 require(msme)
-require(DescTools)
 require(GGally)
 
 ### Definição do problema e descrição resumida dos dados e das variáveis consideradas =============
@@ -41,7 +40,39 @@ ggpairs(dados) + theme_bw()
 
 ### Especificação do modelo ajustado ==============================================================
 # Ajuste do modelo Poisson com ligação log
-mod1 <- irls(los ~ hmo + white + age80 + type, family = "poisson", link = "log", data = dados)
+mod1 <- glm(los ~ hmo + white + age80 + type, family = poisson(link = 'log'), data = dados)
+coefficients(mod1)
+
+### Resumo dos resultados do modelo ajustado ======================================================
 summary(mod1)
 
+### Diagnóstico do ajuste =========================================================================
+# Análise de Resíduos
+resid_panel(mod1, plots = c("resid", "qq", "ls", "cookd"), qqbands = TRUE, nrow = 2)
+# Matriz de Covariância
+vcov(mod1)
 
+### Interpretação/discussão dos efeitos das preditores na resposta ================================
+
+
+### Análise da capacidade preditiva do modelo =====================================================
+predict(ajuste2, newdata = data.frame(idade = 30, usop = 'Estrada', 
+                                      sexo = 'Masc', anosest = 10))
+# Por default, o R retorna a predição na escala do preditor. 
+
+predict(ajuste2, newdata = data.frame(idade = 30, usop = 'Estrada', sexo = 'Masc', 
+                                      anosest = 10), type = 'response')
+# Agora na escala da média (resposta).
+
+# Podemos realizar predições para toda uma base de novos indivíduos. Uma pequena ilustração:
+dpred <- data.frame(idade = c(30,30,60,60),
+                    usop = c('Estrada','Cidade','Estrada','Cidade'),
+                    sexo = c('Masc', 'Fem', 'Fem', 'Masc'),
+                    anosest = c(5, 7, 12, 15))
+dpred
+mu_est <- predict(ajuste2, newdata = dpred, type = 'response')
+dpred$mu <- mu_est
+rownames(dpred) <- c('Perfil 1', 'Perfil 2', 'Perfil 3', 'Perfil 4')
+dpred
+
+### Conclusão do trabalho =========================================================================
