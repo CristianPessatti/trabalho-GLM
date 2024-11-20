@@ -17,6 +17,7 @@
 
 require(tidyverse)
 require(AppliedPredictiveModeling)
+require(GGally)
 
 data(schedulingData)
 schedulingData
@@ -39,6 +40,11 @@ dados_tratados <- schedulingData %>%
 # class: 1 (VF-Very Fast ou F-Fast), 2 (M-Moderate ou L-Long).
 
 ### Análise descritiva/exploratória ============================================================================
+dados_tratados$Protocol <- as.factor(dados_tratados$Protocol)
+dados_tratados$Iterations <- as.factor(dados_tratados$Iterations)
+dados_tratados$Day <- as.factor(dados_tratados$Day)
+
+ggpairs(dados_tratados) + theme_bw()
 
 ### Especificação do modelo ajustado ===========================================================================
 
